@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Disease Diagnosis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f7;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+        }
+        select, input[type="file"], button {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #219150;
+        }
+        .preview-container {
+            margin: 15px 0;
+        }
+        #preview-img, #camera {
+            max-width: 100%;
+            border-radius: 8px;
+            display: block;
+            margin: 10px auto;
+        }
+        #camera {
+            background: #000;
+        }
+        #snapshot {
+            display: none;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e8f5e9;
+            border-left: 6px solid #27ae60;
+            border-radius: 8px;
+            white-space: pre-wrap;
+        }
+        .section {
+            margin-top: 25px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🌱 Crop Disease Diagnosis</h2>
+
+        <form id="diagnosisForm" enctype="multipart/form-data">
+            <label for="language">Select Language:</label>
+            <select name="language" id="language" required>
+                <option value="English">English</option>
+                <option value="Hindi">हिंदी</option>
+                <option value="Tamil">தமிழ்</option>
+            </select>
+
+            <div class="section">
+                <label for="gallery-image">📁 Upload from Gallery:</label>
+                <input type="file" name="image" id="gallery-image" accept="image/*">
+                <div class="preview-container">
+                    <img id="preview-img" src="#" alt="Image Preview" class="hidden">
+                </div>
+                <button type="button" id="upload-btn">🔍 Analyze Uploaded Image</button>
+            </div>
+
+            <div class="section">
+                <label>📸 Or Capture From Camera:</label>
+                <video id="camera" autoplay playsinline class="hidden"></video>
+                <button type="button" id="start-camera">Start Camera</button>
+                <button type="button" id="capture-btn" class="hidden">🎯 Capture & Analyze</button>
+                <canvas id="snapshot"></canvas>
+            </div>
+
+            <div id="output"></div>
+        </form>
+    </div>
+
+    <script>
+        // DOM elements
+        const galleryInput = document.getElementById('gallery-image');
+        const previewImg = document.getElementById('preview-img');
+        const camera = document.getElementById('camera');
+        const startCameraBtn = document.getElementById('start-camera');
+        const captureBtn = document.getElementById('capture-btn');
+        const uploadBtn = document.getElementById('upload-btn');
+        const snapshot = document.getElementById('snapshot');
+        const form = document.getElementById('diagnosisForm');
+        const output = document.getElementById('output');
+        let stream = null;
+
+        // Show preview for gallery image
+        galleryInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                previewImg.src = URL.createObjectURL(file);
+                previewImg.classList.remove('hidden');
+            } else {
+                previewImg.classList.add('hidden');
+            }
+        });
+
+        // Start camera when button is clicked
+        startCameraBtn.addEventListener('click', async () => {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' },
+                    audio: false 
+                });
+                camera.srcObject = stream;
+                camera.classList.remove('hidden');
+                startCameraBtn.classList.add('hidden');
+                captureBtn.classList.remove('hidden');
+            } catch (err) {
+                output.textContent = "Error: Could not access camera. Please check permissions.";
+                console.error("Camera error:", err);
+            }
+        });
+
+        // Handle image upload
+        uploadBtn.addEventListener('click', async () => {
+            if (!galleryInput.files || !galleryInput.files[0]) {
+                output.textContent = "Please select an image first.";
+                return;
+            }
+
+            const formData = new FormData(form);
+            output.textContent = "🔍 Analyzing uploaded image...";
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                window.location.href = `/result?diagnosis=${encodeURIComponent(result.diagnosis)}&language=${encodeURIComponent(result.language)}`;
+            } catch (error) {
+                output.textContent = "Error: Could not connect to server.";
+                console.error("Upload error:", error);
+            }
+        });
+
+        // Handle camera capture
+        captureBtn.addEventListener('click', () => {
+            // Pause the camera stream
+            camera.pause();
+            
+            // Capture the image
+            snapshot.width = camera.videoWidth;
+            snapshot.height = camera.videoHeight;
+            const ctx = snapshot.getContext('2d');
+            ctx.drawImage(camera, 0, 0, snapshot.width, snapshot.height);
+            
+            // Stop the camera stream
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            // Convert to blob and submit
+            snapshot.toBlob(async (blob) => {
+                const formData = new FormData();
+                const lang = document.getElementById('language').value;
+                formData.append('image', blob, 'capture.jpg');
+                formData.append('language', lang);
+
+                output.textContent = "🔍 Analyzing captured image...";
+
+                try {
+                    const response = await fetch('/predict', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const result = await response.json();
+                    window.location.href = `/result?diagnosis=${encodeURIComponent(result.diagnosis)}&language=${encodeURIComponent(result.language)}`;
+                } catch (error) {
+                    output.textContent = "Error: Could not connect to server.";
+                    console.error("Capture error:", error);
+                }
+            }, 'image/jpeg', 0.9);
+        });
+    </script>
+</body>
+</html>
