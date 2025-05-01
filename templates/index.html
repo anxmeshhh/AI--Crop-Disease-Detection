@@ -5,83 +5,1232 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crop Disease Diagnosis</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f7;
+        /* Base Styles & Variables */
+        :root {
+            --color-soil-dark: #5D4037;
+            --color-soil-light: #8D6E63;
+            --color-leaf-dark: #2E7D32;
+            --color-leaf-medium: #43A047;
+            --color-leaf-light: #66BB6A;
+            --color-wheat: #F9A825;
+            --color-corn: #FDD835;
+            --color-tomato: #D32F2F;
+            --color-sky: #B3E5FC;
+            --color-cloud: #ECEFF1;
+            --color-text-dark: #33691E;
+            --color-text-light: #F1F8E9;
+            --color-accent: #FF8F00;
+            --color-warning: #F44336;
+            --color-success: #4CAF50;
+            
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+            
+            --transition-fast: 0.2s ease;
+            --transition-medium: 0.4s ease;
+            --transition-slow: 0.8s ease;
+            
+            --border-radius-sm: 4px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 16px;
+        }
+
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, var(--color-sky) 0%, var(--color-sky) 30%, var(--color-soil-light) 100%);
+            color: var(--color-text-dark);
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
             padding: 20px;
         }
+
+        /* Animated Background Elements */
+        .background-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        /* Sun Animation */
+        .sun {
+            position: absolute;
+            top: 50px;
+            right: 100px;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle, #FFD54F 0%, #FFA000 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 40px #FFA000;
+            animation: sun-pulse 8s ease-in-out infinite, sun-move 120s linear infinite;
+        }
+
+        @keyframes sun-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 40px #FFA000; }
+            50% { transform: scale(1.05); box-shadow: 0 0 60px #FFA000; }
+        }
+
+        @keyframes sun-move {
+            0% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(-50px) translateY(20px); }
+            50% { transform: translateX(0) translateY(40px); }
+            75% { transform: translateX(50px) translateY(20px); }
+            100% { transform: translateX(0) translateY(0); }
+        }
+
+        .sun-ray {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            background-color: rgba(255, 160, 0, 0.3);
+            transform-origin: center;
+        }
+
+        .sun-ray:nth-child(1) {
+            width: 100px;
+            height: 2px;
+            transform: translate(-50%, -50%) rotate(0deg);
+        }
+
+        .sun-ray:nth-child(2) {
+            width: 100px;
+            height: 2px;
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+
+        .sun-ray:nth-child(3) {
+            width: 100px;
+            height: 2px;
+            transform: translate(-50%, -50%) rotate(90deg);
+        }
+
+        .sun-ray:nth-child(4) {
+            width: 100px;
+            height: 2px;
+            transform: translate(-50%, -50%) rotate(135deg);
+        }
+
+        /* Clouds */
+        .cloud {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+        }
+
+        .cloud-1 {
+            top: 80px;
+            left: 100px;
+            width: 100px;
+            height: 60px;
+            animation: cloud-drift-1 80s linear infinite;
+        }
+
+        .cloud-1::before, .cloud-1::after {
+            content: '';
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+        }
+
+        .cloud-1::before {
+            width: 60px;
+            height: 60px;
+            top: -20px;
+            left: 15px;
+        }
+
+        .cloud-1::after {
+            width: 50px;
+            height: 50px;
+            top: -10px;
+            left: 50px;
+        }
+
+        .cloud-2 {
+            top: 150px;
+            right: 150px;
+            width: 120px;
+            height: 70px;
+            animation: cloud-drift-2 100s linear infinite;
+        }
+
+        .cloud-2::before, .cloud-2::after {
+            content: '';
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+        }
+
+        .cloud-2::before {
+            width: 70px;
+            height: 70px;
+            top: -25px;
+            left: 20px;
+        }
+
+        .cloud-2::after {
+            width: 60px;
+            height: 60px;
+            top: -15px;
+            left: 60px;
+        }
+
+        @keyframes cloud-drift-1 {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(calc(100vw + 100px)); }
+            50.1% { transform: translateX(-100px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes cloud-drift-2 {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(calc(-100vw - 120px)); }
+            50.1% { transform: translateX(calc(100vw + 120px)); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Rain Animation (initially hidden) */
+        .rain-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            animation: rain-appear 60s ease-in-out infinite;
+        }
+
+        @keyframes rain-appear {
+            0%, 85%, 100% { opacity: 0; }
+            30%, 55% { opacity: 0.7; }
+        }
+
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            height: 15px;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(179, 229, 252, 0.7));
+            border-radius: 0 0 5px 5px;
+        }
+
+        .raindrop:nth-child(1) { left: 10%; top: -15px; animation: rain-fall 1.5s linear infinite; animation-delay: 0s; }
+        .raindrop:nth-child(2) { left: 20%; top: -15px; animation: rain-fall 1.7s linear infinite; animation-delay: 0.2s; }
+        .raindrop:nth-child(3) { left: 30%; top: -15px; animation: rain-fall 1.3s linear infinite; animation-delay: 0.4s; }
+        .raindrop:nth-child(4) { left: 40%; top: -15px; animation: rain-fall 1.6s linear infinite; animation-delay: 0.1s; }
+        .raindrop:nth-child(5) { left: 50%; top: -15px; animation: rain-fall 1.4s linear infinite; animation-delay: 0.3s; }
+        .raindrop:nth-child(6) { left: 60%; top: -15px; animation: rain-fall 1.8s linear infinite; animation-delay: 0.5s; }
+        .raindrop:nth-child(7) { left: 70%; top: -15px; animation: rain-fall 1.5s linear infinite; animation-delay: 0.2s; }
+        .raindrop:nth-child(8) { left: 80%; top: -15px; animation: rain-fall 1.3s linear infinite; animation-delay: 0.4s; }
+        .raindrop:nth-child(9) { left: 90%; top: -15px; animation: rain-fall 1.7s linear infinite; animation-delay: 0.1s; }
+        .raindrop:nth-child(10) { left: 15%; top: -15px; animation: rain-fall 1.4s linear infinite; animation-delay: 0.3s; }
+        .raindrop:nth-child(11) { left: 25%; top: -15px; animation: rain-fall 1.6s linear infinite; animation-delay: 0.5s; }
+        .raindrop:nth-child(12) { left: 35%; top: -15px; animation: rain-fall 1.8s linear infinite; animation-delay: 0.2s; }
+        .raindrop:nth-child(13) { left: 45%; top: -15px; animation: rain-fall 1.5s linear infinite; animation-delay: 0.4s; }
+        .raindrop:nth-child(14) { left: 55%; top: -15px; animation: rain-fall 1.3s linear infinite; animation-delay: 0.1s; }
+        .raindrop:nth-child(15) { left: 65%; top: -15px; animation: rain-fall 1.7s linear infinite; animation-delay: 0.3s; }
+        .raindrop:nth-child(16) { left: 75%; top: -15px; animation: rain-fall 1.4s linear infinite; animation-delay: 0.5s; }
+        .raindrop:nth-child(17) { left: 85%; top: -15px; animation: rain-fall 1.6s linear infinite; animation-delay: 0.2s; }
+        .raindrop:nth-child(18) { left: 95%; top: -15px; animation: rain-fall 1.8s linear infinite; animation-delay: 0.4s; }
+
+        @keyframes rain-fall {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        /* Field Background */
+        .field-background {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            background: linear-gradient(to bottom, var(--color-leaf-light) 0%, var(--color-soil-light) 100%);
+            z-index: -2;
+        }
+
+        .crop-row {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 30%;
+            background-image: 
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(46, 125, 50, 0.3) 20px,
+                    rgba(46, 125, 50, 0.3) 40px
+                );
+            z-index: -1;
+        }
+
+        .crop {
+            position: absolute;
+            bottom: 0;
+            width: 20px;
+            height: 40px;
+        }
+
+        .crop-stem {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 30px;
+            background-color: var(--color-leaf-dark);
+        }
+
+        .crop-head {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 15px;
+            height: 15px;
+            background-color: var(--color-wheat);
+            border-radius: 50% 50% 0 0;
+        }
+
+        .crop:nth-child(1) { left: 5%; animation: crop-sway 4s ease-in-out infinite; }
+        .crop:nth-child(2) { left: 10%; animation: crop-sway 4.2s ease-in-out infinite 0.2s; }
+        .crop:nth-child(3) { left: 15%; animation: crop-sway 3.8s ease-in-out infinite 0.4s; }
+        .crop:nth-child(4) { left: 20%; animation: crop-sway 4.1s ease-in-out infinite 0.1s; }
+        .crop:nth-child(5) { left: 25%; animation: crop-sway 3.9s ease-in-out infinite 0.3s; }
+        .crop:nth-child(6) { left: 30%; animation: crop-sway 4.3s ease-in-out infinite 0.5s; }
+        .crop:nth-child(7) { left: 35%; animation: crop-sway 4s ease-in-out infinite 0.2s; }
+        .crop:nth-child(8) { left: 40%; animation: crop-sway 3.7s ease-in-out infinite 0.4s; }
+        .crop:nth-child(9) { left: 45%; animation: crop-sway 4.2s ease-in-out infinite 0.1s; }
+        .crop:nth-child(10) { left: 50%; animation: crop-sway 3.8s ease-in-out infinite 0.3s; }
+        .crop:nth-child(11) { left: 55%; animation: crop-sway 4.1s ease-in-out infinite 0.5s; }
+        .crop:nth-child(12) { left: 60%; animation: crop-sway 3.9s ease-in-out infinite 0.2s; }
+        .crop:nth-child(13) { left: 65%; animation: crop-sway 4.3s ease-in-out infinite 0.4s; }
+        .crop:nth-child(14) { left: 70%; animation: crop-sway 4s ease-in-out infinite 0.1s; }
+        .crop:nth-child(15) { left: 75%; animation: crop-sway 3.7s ease-in-out infinite 0.3s; }
+        .crop:nth-child(16) { left: 80%; animation: crop-sway 4.2s ease-in-out infinite 0.5s; }
+        .crop:nth-child(17) { left: 85%; animation: crop-sway 3.8s ease-in-out infinite 0.2s; }
+        .crop:nth-child(18) { left: 90%; animation: crop-sway 4.1s ease-in-out infinite 0.4s; }
+        .crop:nth-child(19) { left: 95%; animation: crop-sway 3.9s ease-in-out infinite 0.1s; }
+
+        @keyframes crop-sway {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(5deg); }
+        }
+
+        /* Floating Leaves */
+        .floating-leaf {
+            position: absolute;
+            width: 30px;
+            height: 15px;
+            background-color: var(--color-leaf-medium);
+            border-radius: 50% 50% 0 50%;
+            transform: rotate(45deg);
+            opacity: 0.6;
+            filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.1));
+        }
+
+        .floating-leaf::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 10px;
+            width: 10px;
+            height: 1px;
+            background-color: rgba(255, 255, 255, 0.5);
+            transform: rotate(-45deg);
+        }
+
+        .leaf-1 {
+            top: 10%;
+            left: 10%;
+            animation: float-leaf 15s ease-in-out infinite, sway-leaf 8s ease-in-out infinite;
+        }
+
+        .leaf-2 {
+            top: 15%;
+            right: 15%;
+            animation: float-leaf 18s ease-in-out infinite 2s, sway-leaf 9s ease-in-out infinite 1s;
+        }
+
+        .leaf-3 {
+            top: 30%;
+            left: 20%;
+            animation: float-leaf 20s ease-in-out infinite 4s, sway-leaf 10s ease-in-out infinite 2s;
+        }
+
+        .leaf-4 {
+            top: 25%;
+            right: 25%;
+            animation: float-leaf 17s ease-in-out infinite 3s, sway-leaf 7s ease-in-out infinite 3s;
+        }
+
+        .leaf-5 {
+            top: 40%;
+            left: 40%;
+            animation: float-leaf 22s ease-in-out infinite 1s, sway-leaf 11s ease-in-out infinite 4s;
+        }
+
+        .leaf-6 {
+            top: 35%;
+            right: 35%;
+            animation: float-leaf 19s ease-in-out infinite 2.5s, sway-leaf 9.5s ease-in-out infinite 1.5s;
+        }
+
+        .leaf-7 {
+            top: 45%;
+            left: 30%;
+            animation: float-leaf 21s ease-in-out infinite 3.5s, sway-leaf 10.5s ease-in-out infinite 2.5s;
+        }
+
+        .leaf-8 {
+            top: 20%;
+            right: 40%;
+            animation: float-leaf 16s ease-in-out infinite 4.5s, sway-leaf 8.5s ease-in-out infinite 3.5s;
+        }
+
+        @keyframes float-leaf {
+            0% { transform: translateY(0) rotate(45deg); }
+            50% { transform: translateY(100vh) rotate(405deg); }
+            100% { transform: translateY(0) rotate(45deg); }
+        }
+
+        @keyframes sway-leaf {
+            0% { transform: translateX(0) rotate(45deg); }
+            25% { transform: translateX(100px) rotate(90deg); }
+            50% { transform: translateX(0) rotate(45deg); }
+            75% { transform: translateX(-100px) rotate(0deg); }
+            100% { transform: translateX(0) rotate(45deg); }
+        }
+
+        /* Butterflies */
+        .butterfly {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            z-index: 2;
+        }
+
+        .butterfly-wing {
+            position: absolute;
+            width: 15px;
+            height: 20px;
+            background-color: var(--color-accent);
+            border-radius: 50% 50% 0 50%;
+            opacity: 0.8;
+        }
+
+        .butterfly-wing.left {
+            left: -10px;
+            transform-origin: right center;
+            animation: flutter-left 0.2s ease-in-out infinite alternate;
+        }
+
+        .butterfly-wing.right {
+            right: -10px;
+            transform: scaleX(-1);
+            transform-origin: left center;
+            animation: flutter-right 0.2s ease-in-out infinite alternate;
+        }
+
+        @keyframes flutter-left {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(-30deg); }
+        }
+
+        @keyframes flutter-right {
+            from { transform: scaleX(-1) rotate(0deg); }
+            to { transform: scaleX(-1) rotate(-30deg); }
+        }
+
+        .butterfly-1 {
+            top: 30%;
+            left: 20%;
+            animation: butterfly-path-1 30s linear infinite;
+        }
+
+        .butterfly-2 {
+            top: 40%;
+            right: 30%;
+            animation: butterfly-path-2 35s linear infinite 5s;
+        }
+
+        @keyframes butterfly-path-1 {
+            0% { transform: translate(0, 0); }
+            20% { transform: translate(100px, -50px); }
+            40% { transform: translate(200px, 50px); }
+            60% { transform: translate(100px, 100px); }
+            80% { transform: translate(-100px, 50px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        @keyframes butterfly-path-2 {
+            0% { transform: translate(0, 0); }
+            25% { transform: translate(-120px, -70px); }
+            50% { transform: translate(-200px, 0px); }
+            75% { transform: translate(-100px, 100px); }
+            100% { transform: translate(0, 0); }
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--color-sky) 0%, var(--color-soil-light) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fade-out 2s forwards 3s;
+        }
+
+        @keyframes fade-out {
+            from { opacity: 1; visibility: visible; }
+            to { opacity: 0; visibility: hidden; }
+        }
+
+        .farm-scene {
+            position: relative;
+            width: 300px;
+            height: 200px;
+        }
+
+        .farm-soil {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 40px;
+            background-color: var(--color-soil-dark);
+            border-radius: 50% 50% 0 0;
+            transform: scaleX(1.5);
+        }
+
+        .farm-house {
+            position: absolute;
+            bottom: 40px;
+            right: 30px;
+            width: 60px;
+            height: 50px;
+            background-color: #D7CCC8;
+            border-radius: 5px;
+        }
+
+        .farm-house::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 20px solid #A1887F;
+        }
+
+        .farm-house::after {
+            content: '';
+            position: absolute;
+            bottom: 15px;
+            left: 20px;
+            width: 15px;
+            height: 20px;
+            background-color: #795548;
+            border-radius: 2px;
+        }
+
+        .growing-plant {
+            position: absolute;
+            bottom: 40px;
+            left: 50px;
+            width: 100px;
+            height: 150px;
+        }
+
+        .stem {
+            position: absolute;
+            bottom: 0;
+            left: 48px;
+            width: 4px;
+            height: 0;
+            background-color: var(--color-leaf-dark);
+            animation: grow-stem 2s forwards 0.5s;
+        }
+
+        @keyframes grow-stem {
+            from { height: 0; }
+            to { height: 100px; }
+        }
+
+        .leaf {
+            position: absolute;
+            width: 30px;
+            height: 15px;
+            background-color: var(--color-leaf-medium);
+            border-radius: 50% 50% 0 50%;
+            opacity: 0;
+        }
+
+        .leaf-left {
+            bottom: 80px;
+            left: 30px;
+            transform: rotate(-45deg);
+            animation: grow-leaf 1s forwards 1.5s;
+        }
+
+        .leaf-right {
+            bottom: 60px;
+            right: 30px;
+            transform: rotate(45deg);
+            animation: grow-leaf 1s forwards 1.8s;
+        }
+
+        @keyframes grow-leaf {
+            from { opacity: 0; transform: scale(0) rotate(-45deg); }
+            to { opacity: 1; transform: scale(1) rotate(-45deg); }
+        }
+
+        .leaf-right {
+            animation: grow-leaf-right 1s forwards 1.8s;
+        }
+
+        @keyframes grow-leaf-right {
+            from { opacity: 0; transform: scale(0) rotate(45deg); }
+            to { opacity: 1; transform: scale(1) rotate(45deg); }
+        }
+
+        .flower {
+            position: absolute;
+            top: 30px;
+            left: 40px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--color-wheat);
+            border-radius: 50%;
+            opacity: 0;
+            animation: bloom 1s forwards 2.5s;
+        }
+
+        .flower::before, .flower::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: var(--color-wheat);
+            border-radius: 50%;
+        }
+
+        .flower::before {
+            top: -10px;
+            left: 0;
+        }
+
+        .flower::after {
+            top: 0;
+            left: -10px;
+        }
+
+        @keyframes bloom {
+            from { opacity: 0; transform: scale(0); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .loading-text {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            color: var(--color-text-light);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        /* Main Container */
         .container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             max-width: 500px;
             margin: 0 auto;
+            background-color: rgba(236, 239, 241, 0.9);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            animation: slide-up 1s ease-out forwards 3s;
+            opacity: 0;
+            transform: translateY(50px);
+            position: relative;
+            z-index: 1;
+            backdrop-filter: blur(5px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
         }
+
+        @keyframes slide-up {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
         h2 {
-            margin-bottom: 20px;
-            color: #2c3e50;
+            background-color: var(--color-leaf-dark);
+            color: var(--color-text-light);
+            padding: 1.5rem;
             text-align: center;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
         }
+
+        h2::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.1) 2px, transparent 2px),
+                radial-gradient(circle at 80% 60%, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px, 70px 70px, 40px 40px;
+            animation: drift 60s linear infinite;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(to right, var(--color-wheat), var(--color-accent), var(--color-wheat));
+            opacity: 0.7;
+        }
+
+        @keyframes drift {
+            from { background-position: 0 0, 0 0, 0 0; }
+            to { background-position: 100px 0, -100px 0, 50px 0; }
+        }
+
+        /* Form Styling */
+        #diagnosisForm {
+            padding: 20px;
+            position: relative;
+        }
+
+        #diagnosisForm::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(102, 187, 106, 0.05) 1px, transparent 1px),
+                radial-gradient(circle at 30% 30%, rgba(102, 187, 106, 0.05) 2px, transparent 2px),
+                radial-gradient(circle at 70% 70%, rgba(102, 187, 106, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px, 40px 40px, 20px 20px;
+            z-index: -1;
+        }
+
         label {
-            font-weight: bold;
+            font-weight: 600;
             display: block;
             margin-top: 15px;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
+            color: var(--color-text-dark);
+            position: relative;
+            padding-left: 28px;
+            transition: transform var(--transition-fast);
         }
-        select, input[type="file"], button {
+
+        label:hover {
+            transform: translateX(5px);
+        }
+
+        label::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 20px;
+            background-color: var(--color-leaf-medium);
+            border-radius: 50%;
+            box-shadow: var(--shadow-sm);
+        }
+
+        label::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            opacity: 0.8;
+        }
+
+        select, input[type="file"] {
             width: 100%;
             padding: 12px;
             margin-bottom: 15px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
+            border: 2px solid var(--color-leaf-medium);
+            border-radius: var(--border-radius-md);
             font-size: 15px;
+            background-color: rgba(255, 255, 255, 0.8);
+            transition: all var(--transition-fast);
+            position: relative;
+            z-index: 1;
+            box-shadow: var(--shadow-sm);
         }
+
+        select:hover, input[type="file"]:hover {
+            border-color: var(--color-leaf-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        select:focus, input[type="file"]:focus {
+            outline: none;
+            border-color: var(--color-leaf-dark);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+            transform: translateY(-2px);
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232E7D32'%3E%3Cpath d='M7 10l5 5 5-5H7z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+            padding-right: 40px;
+        }
+
         button {
-            background-color: #27ae60;
-            color: white;
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
             border: none;
+            border-radius: var(--border-radius-md);
+            font-size: 16px;
+            font-weight: 600;
+            background-color: var(--color-leaf-dark);
+            color: white;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
         }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
         button:hover {
-            background-color: #219150;
+            background-color: var(--color-leaf-medium);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-lg);
         }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Button Icons Animation */
+        button#upload-btn::after {
+            content: '🔍';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            animation: bounce 2s infinite;
+        }
+
+        button#start-camera::after {
+            content: '📸';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            animation: bounce 2s infinite 0.5s;
+        }
+
+        button#capture-btn::after {
+            content: '🎯';
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 18px;
+            animation: bounce 2s infinite 0.5s;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(-50%); }
+            40% { transform: translateY(-70%); }
+            60% { transform: translateY(-40%); }
+        }
+
         .preview-container {
             margin: 15px 0;
+            position: relative;
+            border-radius: var(--border-radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: all var(--transition-medium);
         }
+
+        .preview-container:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-lg);
+        }
+
         #preview-img, #camera {
             max-width: 100%;
-            border-radius: 8px;
+            border-radius: var(--border-radius-md);
             display: block;
-            margin: 10px auto;
+            margin: 0 auto;
+            transition: transform var(--transition-medium);
         }
+
         #camera {
             background: #000;
+            min-height: 200px;
         }
+
         #snapshot {
             display: none;
         }
+
+        /* Scanning Effect */
+        .preview-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(to right, transparent, var(--color-accent), transparent);
+            opacity: 0;
+            z-index: 1;
+            animation: scan 3s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+
+        /* Soil Crumble Effect */
+        .section {
+            margin-top: 25px;
+            border-top: 1px solid rgba(46, 125, 50, 0.2);
+            padding-top: 15px;
+            position: relative;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background-color: var(--color-leaf-dark);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .section::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background-image: 
+                radial-gradient(circle at 10% 0, var(--color-soil-dark) 2px, transparent 2px),
+                radial-gradient(circle at 20% 0, var(--color-soil-dark) 1px, transparent 1px),
+                radial-gradient(circle at 30% 0, var(--color-soil-dark) 2px, transparent 2px),
+                radial-gradient(circle at 40% 0, var(--color-soil-dark) 1px, transparent 1px),
+                radial-gradient(circle at 50% 0, var(--color-soil-dark) 2px, transparent 2px),
+                radial-gradient(circle at 60% 0, var(--color-soil-dark) 1px, transparent 1px),
+                radial-gradient(circle at 70% 0, var(--color-soil-dark) 2px, transparent 2px),
+                radial-gradient(circle at 80% 0, var(--color-soil-dark) 1px, transparent 1px),
+                radial-gradient(circle at 90% 0, var(--color-soil-dark) 2px, transparent 2px);
+            opacity: 0.5;
+        }
+
+        .hidden {
+            display: none;
+        }
+
         #output {
             margin-top: 20px;
             padding: 15px;
-            background-color: #e8f5e9;
-            border-left: 6px solid #27ae60;
-            border-radius: 8px;
+            background-color: rgba(232, 245, 233, 0.7);
+            border-left: 6px solid var(--color-leaf-dark);
+            border-radius: var(--border-radius-md);
             white-space: pre-wrap;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-medium);
+            position: relative;
+            overflow: hidden;
+            animation: grow-output 0.5s ease-out;
         }
-        .section {
-            margin-top: 25px;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
+
+        @keyframes grow-output {
+            from { max-height: 0; opacity: 0; padding: 0 15px; }
+            to { max-height: 200px; opacity: 1; padding: 15px; }
         }
-        .hidden {
-            display: none;
+
+        #output::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(102, 187, 106, 0.1) 1px, transparent 1px),
+                radial-gradient(circle at 30% 70%, rgba(102, 187, 106, 0.1) 2px, transparent 2px),
+                radial-gradient(circle at 70% 40%, rgba(102, 187, 106, 0.1) 1px, transparent 1px);
+            background-size: 30px 30px, 40px 40px, 20px 20px;
+            z-index: -1;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 600px) {
+            .container {
+                margin: 0 10px;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+                padding: 1rem;
+            }
+            
+            #diagnosisForm {
+                padding: 15px;
+            }
+            
+            button {
+                padding: 12px;
+            }
+
+            .farm-scene {
+                width: 250px;
+                height: 150px;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Animated Background Elements -->
+    <div class="background-elements">
+        <!-- Sun and Rays -->
+        <div class="sun">
+            <div class="sun-ray"></div>
+            <div class="sun-ray"></div>
+            <div class="sun-ray"></div>
+            <div class="sun-ray"></div>
+        </div>
+        
+        <!-- Clouds -->
+        <div class="cloud cloud-1"></div>
+        <div class="cloud cloud-2"></div>
+        
+        <!-- Rain Animation -->
+        <div class="rain-container">
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+            <div class="raindrop"></div>
+        </div>
+        
+        <!-- Field Background -->
+        <div class="field-background"></div>
+        <div class="crop-row">
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+            <div class="crop">
+                <div class="crop-stem"></div>
+                <div class="crop-head"></div>
+            </div>
+        </div>
+        
+        <!-- Floating Leaves -->
+        <div class="floating-leaf leaf-1"></div>
+        <div class="floating-leaf leaf-2"></div>
+        <div class="floating-leaf leaf-3"></div>
+        <div class="floating-leaf leaf-4"></div>
+        <div class="floating-leaf leaf-5"></div>
+        <div class="floating-leaf leaf-6"></div>
+        <div class="floating-leaf leaf-7"></div>
+        <div class="floating-leaf leaf-8"></div>
+        
+        <!-- Butterflies -->
+        <div class="butterfly butterfly-1">
+            <div class="butterfly-wing left"></div>
+            <div class="butterfly-wing right"></div>
+        </div>
+        <div class="butterfly butterfly-2">
+            <div class="butterfly-wing left"></div>
+            <div class="butterfly-wing right"></div>
+        </div>
+    </div>
+
+    <!-- Loading Screen -->
+    <div class="loading-screen">
+        <div class="farm-scene">
+            <div class="farm-soil"></div>
+            <div class="farm-house"></div>
+            <div class="growing-plant">
+                <div class="stem"></div>
+                <div class="leaf leaf-left"></div>
+                <div class="leaf leaf-right"></div>
+                <div class="flower"></div>
+            </div>
+        </div>
+        <p class="loading-text">Growing your experience...</p>
+    </div>
+
     <div class="container">
         <h2>🌱 Crop Disease Diagnosis</h2>
 
@@ -94,19 +1243,19 @@
             </select>
 
             <div class="section">
-                <label for="gallery-image">📁 Upload from Gallery:</label>
+                <label for="gallery-image">Upload from Gallery:</label>
                 <input type="file" name="image" id="gallery-image" accept="image/*">
                 <div class="preview-container">
                     <img id="preview-img" src="#" alt="Image Preview" class="hidden">
                 </div>
-                <button type="button" id="upload-btn">🔍 Analyze Uploaded Image</button>
+                <button type="button" id="upload-btn">Analyze Uploaded Image</button>
             </div>
 
             <div class="section">
-                <label>📸 Or Capture From Camera:</label>
+                <label>Capture From Camera:</label>
                 <video id="camera" autoplay playsinline class="hidden"></video>
                 <button type="button" id="start-camera">Start Camera</button>
-                <button type="button" id="capture-btn" class="hidden">🎯 Capture & Analyze</button>
+                <button type="button" id="capture-btn" class="hidden">Capture & Analyze</button>
                 <canvas id="snapshot"></canvas>
             </div>
 
